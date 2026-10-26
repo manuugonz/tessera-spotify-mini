@@ -1,0 +1,311 @@
+diff --git a/echod/internal/feature/display/spotify_mini_test.go b/echod/internal/feature/display/spotify_mini_test.go
+new file mode 100644
+index 0000000..b26a907
+--- /dev/null
++++ b/echod/internal/feature/display/spotify_mini_test.go
+@@ -0,0 +1,72 @@
++//go:build !dot && !spot
++
++package display
++
++import (
++	"encoding/json"
++	"image"
++	"image/png"
++	"os"
++	"path/filepath"
++	"testing"
++	"time"
++
++	"github.com/HuskerMinion/techo5/echod/internal/config"
++	"github.com/HuskerMinion/techo5/echod/internal/feature/tessera"
++)
++
++// The actual receiver converts a Store plugin message, then the Show 8 renderer
++// draws it and emits its native media control hit zones. No physical hardware.
++func TestSpotifyMiniShow8Render(t *testing.T) {
++	config.Use(filepath.Join(t.TempDir(), "state.json"))
++	if err := config.Set().Dashboard().Mode(config.DashboardTessera); err != nil {
++		t.Fatal(err)
++	}
++	rcv := tessera.NewReceiver(tessera.Capabilities{MaxTiles: 8, MaxPages: 8}, nil)
++	hello := rcv.Receive(`{"v":2,"op":"hello"}`)
++	seq := 0
++	send := func(m map[string]any) {
++		seq++
++		m["v"] = 2
++		m["seq"] = seq
++		m["session"] = hello.Session
++		m["rev"] = "spotify-mini-test"
++		b, _ := json.Marshal(m)
++		a := rcv.Receive(string(b))
++		if a.Status != tessera.StatusLoading && a.Status != tessera.StatusSynced {
++			t.Fatal(a.Status)
++		}
++	}
++	send(map[string]any{"op": "begin", "pages": 1, "tiles": 1, "home": 0})
++	send(map[string]any{"op": "page", "p": 0, "title": "Spotify Mini", "items": []any{}})
++	send(map[string]any{"op": "tile", "i": 0, "slot": 0, "entity": "plugin:spotify_mini.player", "name": "Spotify Mini", "state": "ok",
++		"o": map[string]any{"size": "square", "pe": "media_player.spotify_mini"},
++		"x": map[string]any{"state": "playing", "attributes": map[string]any{"media_title": "Evening Walk", "media_artist": "Example Ensemble", "volume_level": 0.35}}})
++	send(map[string]any{"op": "commit"})
++	tessera.Preview(rcv.Layout(), 4, 3)
++	t.Cleanup(func() { tessera.Preview(nil, 0, 0) })
++	img := image.NewRGBA(image.Rect(0, 0, 1280, 800))
++	r := newRenderer(img)
++	v, on := tessera.Current()
++	r.draw(scene{now: time.Now(), phase: "idle", showDash: true, dashMode: config.DashboardTessera, tessera: v, tessOn: on})
++	zones, _ := r.dash()
++	found := false
++	for _, z := range zones {
++		if z.entity == "media_player.spotify_mini" {
++			found = true
++		}
++	}
++	if !found {
++		t.Fatal("no media touch zone in Show 8 renderer")
++	}
++	if dest := os.Getenv("SPOTIFY_MINI_RENDER"); dest != "" {
++		f, err := os.Create(dest)
++		if err != nil {
++			t.Fatal(err)
++		}
++		defer f.Close()
++		if err := png.Encode(f, img); err != nil {
++			t.Fatal(err)
++		}
++	}
++}
+diff --git a/echod/internal/feature/tessera/protocol.go b/echod/internal/feature/tessera/protocol.go
+index 9fc1535..0ec7e31 100644
+--- a/echod/internal/feature/tessera/protocol.go
++++ b/echod/internal/feature/tessera/protocol.go
+@@ -87,8 +87,10 @@ type Answer struct {
+ 	MaxPages    int `json:"max_pages"`
+ 	MaxBarItems int `json:"max_bar_items"`
+ 
+-	Features  []string `json:"features"`
+-	TileSizes []string `json:"tile_sizes"`
++	Features  []string       `json:"features"`
++	TileSizes []string       `json:"tile_sizes"`
++	PluginAPI string         `json:"plugin_api,omitempty"`
++	Plugins   []NativePlugin `json:"plugins,omitempty"`
+ }
+ 
+ // envelope is what every message carries, whatever it is.
+@@ -470,6 +472,10 @@ func (r *Receiver) apply(env envelope, raw []byte) (string, bool) {
+ 			t.I < 0 || t.I >= len(r.pending.Tiles) {
+ 			return r.refuse(errInvalid), false
+ 		}
++		if !supportedSpotifyTile(t) {
++			return r.refuse(errInvalid), false
++		}
++		t = spotifyNativeTile(t)
+ 		r.pending.Tiles[t.I], r.pending.gotTiles[t.I] = t, true
+ 		return r.set(StatusLoading), false
+ 	case "commit":
+@@ -552,6 +558,13 @@ func (r *Receiver) state(raw []byte) string {
+ 		return r.refuse(errInvalid)
+ 	}
+ 	old := &r.active.Tiles[t.I]
++	if t.O == nil {
++		t.O = old.O
++	}
++	if !supportedSpotifyTile(t) {
++		return r.refuse(errInvalid)
++	}
++	t = spotifyNativeTile(t)
+ 	// A state that leaves out the entity or the name leaves them as they were.
+ 	if t.Entity != "" {
+ 		old.Entity = t.Entity
+@@ -703,5 +716,7 @@ func (r *Receiver) answer(status string) Answer {
+ 		MaxBarItems: r.caps.MaxBarItems,
+ 		Features:    features,
+ 		TileSizes:   slices.Clone(r.caps.TileSizes),
++		PluginAPI:   "0.13",
++		Plugins:     []NativePlugin{{ID: "spotify_mini", Version: "0.1.0", Tiles: []string{"player"}}},
+ 	}
+ }
+diff --git a/echod/internal/feature/tessera/spotify_mini.go b/echod/internal/feature/tessera/spotify_mini.go
+new file mode 100644
+index 0000000..afdc812
+--- /dev/null
++++ b/echod/internal/feature/tessera/spotify_mini.go
+@@ -0,0 +1,70 @@
++package tessera
++
++import (
++	"encoding/json"
++	"strings"
++)
++
++// NativePlugin advertises a built-in wire adapter. It does not load C++ or LVGL.
++// Only Spotify Mini 0.1.0's player contract is implemented, not arbitrary plugins.
++type NativePlugin struct {
++	ID      string   `json:"id"`
++	Version string   `json:"version"`
++	Tiles   []string `json:"tiles"`
++}
++
++const spotifyMiniTile = "plugin:spotify_mini.player"
++
++func supportedSpotifyTile(t Tile) bool {
++	return !strings.HasPrefix(t.Entity, "plugin:") || t.Entity == spotifyMiniTile
++}
++
++// spotifyNativeTile maps the Store plugin's bounded wire state onto the existing
++// TECHO5 media renderer. Its name and placement survive; no firmware code is fetched.
++func spotifyNativeTile(t Tile) Tile {
++	if t.Entity != spotifyMiniTile {
++		return t
++	}
++	var options map[string]any
++	if json.Unmarshal(t.O, &options) != nil {
++		return t
++	}
++	entity, _ := options["pe"].(string)
++	if !validMiniEntity(entity) {
++		return t
++	}
++	var data struct {
++		State      string         `json:"state"`
++		Attributes map[string]any `json:"attributes"`
++	}
++	if json.Unmarshal(t.X, &data) != nil {
++		return t
++	}
++	if data.Attributes == nil {
++		data.Attributes = map[string]any{}
++	}
++	// Keep the native playback controls and media detail sheet.
++	options["controls"] = "playback"
++	options["tap"] = "detail"
++	options["spotify_mini"] = true
++	if data.State == "" {
++		data.State = "unavailable"
++	}
++	t.Entity, t.State = entity, data.State
++	t.A, _ = json.Marshal(data.Attributes)
++	t.O, _ = json.Marshal(options)
++	t.X = nil
++	return t
++}
++
++func validMiniEntity(entity string) bool {
++	if !strings.HasPrefix(entity, "media_player.") || len(entity) <= len("media_player.") || len(entity) > 255 {
++		return false
++	}
++	for _, c := range strings.TrimPrefix(entity, "media_player.") {
++		if c != '_' && (c < 'a' || c > 'z') && (c < '0' || c > '9') {
++			return false
++		}
++	}
++	return true
++}
+diff --git a/echod/internal/feature/tessera/spotify_mini_test.go b/echod/internal/feature/tessera/spotify_mini_test.go
+new file mode 100644
+index 0000000..def0b3f
+--- /dev/null
++++ b/echod/internal/feature/tessera/spotify_mini_test.go
+@@ -0,0 +1,89 @@
++package tessera
++
++import (
++	"encoding/json"
++	"slices"
++	"testing"
++	"time"
++
++	"github.com/HuskerMinion/techo5/echod/internal/component"
++)
++
++func miniTile() Tile {
++	slot := 0
++	return Tile{I: 0, Slot: &slot, Entity: spotifyMiniTile, Name: "Spotify Mini", State: "ok",
++		O: json.RawMessage(`{"size":"square","pe":"media_player.spotify_mini"}`),
++		X: json.RawMessage(`{"state":"playing","attributes":{"media_title":"Evening Walk","media_artist":"Example","volume_level":0.4}}`)}
++}
++
++func TestSpotifyMiniAdapter(t *testing.T) {
++	c := capabilities(gridFor(true, false))
++	if !slices.Contains(c.Features, "plugins") {
++		t.Fatal("plugin delivery disabled")
++	}
++	a := NewReceiver(c, nil).Receive(`{"v":2,"op":"hello"}`)
++	if a.PluginAPI != "0.13" || len(a.Plugins) != 1 || a.Plugins[0].ID != "spotify_mini" {
++		t.Fatalf("bad hello: %+v", a)
++	}
++	tile := spotifyNativeTile(miniTile())
++	p := describe(tile, tileOptions(tile))
++	if p.Entity != "media_player.spotify_mini" || p.State != "playing" || !p.Detail || !p.Taps {
++		t.Fatalf("bad tile: %+v", p)
++	}
++	if len(p.Controls) != 1 || p.Controls[0] != "playback" {
++		t.Fatalf("missing playback: %+v", p.Controls)
++	}
++	if !stringsContains(p.Value, "Evening Walk") {
++		t.Fatalf("metadata lost: %s", p.Value)
++	}
++}
++func stringsContains(s, sub string) bool {
++	for i := 0; i+len(sub) <= len(s); i++ {
++		if s[i:i+len(sub)] == sub {
++			return true
++		}
++	}
++	return false
++}
++
++func TestSpotifyMiniRejectsOtherPluginsAndBadTargets(t *testing.T) {
++	tile := miniTile()
++	tile.Entity = "plugin:other.any"
++	if supportedSpotifyTile(tile) {
++		t.Fatal("claimed arbitrary plugin support")
++	}
++	tile = miniTile()
++	tile.O = json.RawMessage(`{"pe":"light.kitchen"}`)
++	if spotifyNativeTile(tile).Entity != spotifyMiniTile {
++		t.Fatal("cross-domain target")
++	}
++	for _, entity := range []string{"media_player.", "media_player.x,light.y", "media_player.{{x}}"} {
++		if validMiniEntity(entity) {
++			t.Fatal(entity)
++		}
++	}
++}
++
++func TestSpotifyMiniStateAndTouch(t *testing.T) {
++	tile := spotifyNativeTile(miniTile())
++	r := NewReceiver(capabilities(gridFor(true, false)), nil)
++	r.Restore(&Layout{Rev: rev1, Begin: Begin{Pages: 1, Tiles: 1}, Pages: []Page{{P: 0}}, Tiles: []Tile{tile}})
++	screen := newScreen(r, gridFor(true, false))
++	if !screen.Tap(0, tile.Entity, time.Now()) {
++		t.Fatal("touch must open native media sheet")
++	}
++	// A state update arrives under the plugin's identity, not the converted entity.
++	if r.state([]byte(`{"i":0,"entity":"plugin:spotify_mini.player","state":"ok","x":{"state":"paused","attributes":{"media_title":"Next"}}}`)) != StatusSynced {
++		t.Fatal("update refused")
++	}
++	if r.active.Tiles[0].Entity != tile.Entity || r.active.Tiles[0].State != "paused" {
++		t.Fatal("state update lost target")
++	}
++	var got component.Call
++	remove := component.CallService.Listen(func(c component.Call) { got = c })
++	defer remove()
++	Call(tile.Entity, "media_player.media_next_track", nil)
++	if got.Service != "media_player.media_next_track" || got.Data["entity_id"] != tile.Entity {
++		t.Fatalf("bad control %+v", got)
++	}
++}
+diff --git a/echod/internal/feature/tessera/tessera.go b/echod/internal/feature/tessera/tessera.go
+index 95c32d4..98b6898 100644
+--- a/echod/internal/feature/tessera/tessera.go
++++ b/echod/internal/feature/tessera/tessera.go
+@@ -122,6 +122,7 @@ func capabilities(g grid) Capabilities {
+ 		MaxPages:    8,
+ 		MaxBarItems: 6,
+ 		TileSizes:   sizes(g),
++		Features:    []string{"plugins"},
+ 		FreePages:   true,
+ 	}
+ }
