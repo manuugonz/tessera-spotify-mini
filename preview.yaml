@@ -1,0 +1,52 @@
+tiles:
+  - tile: player
+    name: Spotify Mini
+    entity: media_player.spotify_mini
+    sizes: [2x2, 3x2, 4x3]
+  - tile: player
+    name: Offline
+    entity: media_player.spotify_mini_offline
+    sizes: [2x2]
+  - tile: player
+    name: No device
+    entity: media_player.spotify_mini_idle
+    sizes: [2x2]
+  - tile: player
+    name: Mini
+    entity: media_player.spotify_mini
+    sizes: [1x2]
+    data:
+      state: paused
+      attributes: {media_title: Drift, media_artist: Ensemble, mini_cover: '0000000000000000000000000000000000000000', mini_error: '', mini_volume: false}
+states:
+  media_player.spotify_mini:
+    state: playing
+    attributes:
+      friendly_name: Spotify Mini
+      media_title: Evening Walk
+      media_artist: Example Ensemble
+      media_duration: 240
+      media_position: 72
+      volume_level: 0.35
+      mini_cover: '0000000000000000000000000000000000000000'
+      mini_error: ''
+      mini_device: Echo Show 8
+      mini_volume: true
+      mini_position_at: '{epoch}'
+  media_player.spotify_mini_offline:
+    state: unavailable
+    attributes: {mini_error: network_error, mini_cover: ''}
+  media_player.spotify_mini_idle:
+    state: idle
+    attributes: {mini_error: no_device, mini_cover: ''}
+cards:
+  - {card: player, entity: media_player.spotify_mini}
+commands:
+  'call_service:spotify_mini.browse':
+    items:
+      - {uri: 'spotify:playlist:0000000000000000000001', title: Evening Mix, artist: Example, cover: '0000000000000000000000000000000000000000', kind: playlist}
+      - {uri: 'spotify:playlist:0000000000000000000002', title: Morning, artist: Example, cover: '', kind: playlist}
+    more: false
+  'call_service:spotify_mini.command': {ok: true}
+pictures:
+  'https://i.scdn.co/image/0000000000000000000000000000000000000000': preview/cover.png

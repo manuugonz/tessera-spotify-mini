@@ -1,0 +1,36 @@
+id: spotify_mini
+version: 0.1.0
+api: "0.13"
+icon: music
+maintainer: manuugonz
+license: MIT
+stage: beta
+topics: [media]
+attributes: [cloud, ai-developed]
+privacy: https://www.spotify.com/legal/privacy-policy/
+requires:
+  esphome: 2026.9.0
+boards: any
+flash_kb: 32
+permissions:
+  network: [i.scdn.co]
+  home_assistant_actions:
+    - media_player.media_play_pause
+    - media_player.media_previous_track
+    - media_player.media_next_track
+  ha_commands:
+    - call_service:spotify_mini.browse
+    - call_service:spotify_mini.command
+tiles:
+  - id: player
+    name: tile_name
+    icon: music
+    sizes: {min: 1x2, max: 4x3}
+    memory: 1800
+    domains: [media_player]
+    has_attributes: [mini_cover]
+    attributes: [media_title, media_artist, media_duration, media_position, mini_cover, mini_error, mini_device, mini_position_at]
+    pictures: 1
+    preview: {title: "{media_title}", value: "{media_artist}"}
+cards:
+  - {id: player, name: card_name, pictures: 4}
