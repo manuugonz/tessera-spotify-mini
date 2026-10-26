@@ -1,0 +1,21 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "This Spotify account is already configured.",
+      "cannot_connect": "Could not read the Spotify account. Check Premium access and the application's user allowlist.",
+      "reauth_account_mismatch": "Sign in with the Spotify account already linked to Spotify Mini."
+    },
+    "create_entry": {"default": "Spotify Mini is connected."},
+    "initiate_flow": {"user": "Connect a Spotify account"},
+    "step": {
+      "pick_implementation": {
+        "title": "Spotify application credentials",
+        "data": {"implementation": "Application credentials"}
+      },
+      "reauth_confirm": {
+        "title": "Reconnect Spotify Mini",
+        "description": "Spotify Mini needs you to sign in to Spotify again."
+      }
+    }
+  }
+}

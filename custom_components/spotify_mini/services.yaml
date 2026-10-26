@@ -1,0 +1,48 @@
+browse:
+  name: Browse Spotify Mini
+  description: Browse the authorized account with a bounded response for Tessera.
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          domain: media_player
+          integration: spotify_mini
+    category:
+      selector:
+        select:
+          options: [playlists, recent, albums, local, devices, search]
+    query:
+      selector:
+        text: {}
+    kind:
+      selector:
+        select:
+          options: [track, artist, album, playlist]
+    offset:
+      selector:
+        number:
+          min: 0
+          max: 10000
+          mode: box
+command:
+  name: Control Spotify Mini
+  description: Control playback or transfer to an available Spotify Connect device.
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          domain: media_player
+          integration: spotify_mini
+    operation:
+      required: true
+      selector:
+        select:
+          options: [toggle, play, pause, next, previous, volume, volume_up, volume_down, seek, device, play_uri]
+    value:
+      selector:
+        text: {}
+    title:
+      selector:
+        text: {}

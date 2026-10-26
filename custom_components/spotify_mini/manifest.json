@@ -1,0 +1,11 @@
+{
+  "domain": "spotify_mini",
+  "name": "Spotify Mini",
+  "version": "0.1.0",
+  "config_flow": true,
+  "dependencies": ["application_credentials"],
+  "documentation": "https://developer.spotify.com/documentation/web-api",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "codeowners": []
+}
