@@ -1,0 +1,17 @@
+#include "spotify_mini.h"
+namespace esphome::spotify_mini {
+class Probe : public tessera::Tile {
+ public:
+  explicit Probe(SpotifyMini *p) : p_(p) {}
+  void create(const tessera::TileContext &c) override {
+    label_ = tessera::ui::label(c.parent, tessera::Font::TITLE, theme::INK);
+    lv_obj_set_width(label_, c.width);
+    tessera::ui::set_text(label_, p_->text("ready"));
+  }
+  void on_tap() override { tessera::ui::set_text(label_, p_->text("tapped")); }
+ private:
+  SpotifyMini *p_;
+  lv_obj_t *label_{};
+};
+void SpotifyMini::setup() { add_tile("player", [this]() { return new Probe(this); }); }
+}

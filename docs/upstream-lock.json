@@ -1,0 +1,14 @@
+{
+  "tessera-plugins": {
+    "commit": "36791a66b6eb756fd766ed4226421bd0576ff907",
+    "branch": "main"
+  },
+  "tessera": {
+    "commit": "80f6fb793e33ffdac4a93029331b5bec2fb6b414",
+    "branch": "main"
+  },
+  "techo5": {
+    "commit": "248b9dafe3dec0ace21604f2b5986f7e52ab41d6",
+    "branch": "main"
+  }
+}
