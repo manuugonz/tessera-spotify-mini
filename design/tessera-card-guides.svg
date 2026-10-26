@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <title>Spotify Mini — Tessera square card guides</title>
+  <desc>480x480 screenshot canvas used by the Guition preview. The top card header occupies approximately 80 pixels; leave at least 16 pixels inside the content edges.</desc>
+  <rect width="480" height="480" fill="#111217"/>
+  <rect x="0" y="0" width="480" height="80" fill="#20222a"/>
+  <text x="16" y="48" font-family="Arial,sans-serif" font-size="19" fill="#fff">Cabecera Tessera · ~80 px</text>
+  <rect x="16" y="96" width="448" height="368" fill="none" stroke="#59d77e" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="31" y="130" font-family="Arial,sans-serif" font-size="19" fill="#e8ffee">Área útil orientativa</text>
+  <text x="31" y="158" font-family="Arial,sans-serif" font-size="16" fill="#e8ffee">Margen interior mínimo: 16 px</text>
+  <text x="31" y="186" font-family="Arial,sans-serif" font-size="16" fill="#e8ffee">Diseña vistas separadas: reproductor, biblioteca, búsqueda</text>
+</svg>

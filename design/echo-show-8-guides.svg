@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <title>Spotify Mini — Echo Show 8 / TECHO5 layout guides</title>
+  <desc>1280x800 screen, 4x3 Tessera grid, one-page layout. Highlighted top-left 2x2 tile is 604x452 at x27 y85. Geometry derives from TECHO5's 20 and 12 base pixel constants scaled by 4/3.</desc>
+  <rect width="1280" height="800" fill="#101115"/>
+  <rect x="0" y="0" width="1280" height="85" fill="#1a1c22"/>
+  <text x="28" y="52" font-family="Arial,sans-serif" font-size="27" fill="#f0f0f0">Barra superior · 85 px</text>
+  <g fill="none" stroke="#647181" stroke-width="2" stroke-dasharray="8 7">
+    <rect x="27" y="85" width="294" height="218"/><rect x="337" y="85" width="294" height="218"/><rect x="647" y="85" width="294" height="218"/><rect x="957" y="85" width="294" height="218"/>
+    <rect x="27" y="319" width="294" height="218"/><rect x="337" y="319" width="294" height="218"/><rect x="647" y="319" width="294" height="218"/><rect x="957" y="319" width="294" height="218"/>
+    <rect x="27" y="553" width="294" height="218"/><rect x="337" y="553" width="294" height="218"/><rect x="647" y="553" width="294" height="218"/><rect x="957" y="553" width="294" height="218"/>
+  </g>
+  <rect x="27" y="85" width="604" height="452" fill="#2e613f" fill-opacity="0.27" stroke="#59d77e" stroke-width="3"/>
+  <text x="57" y="140" font-family="Arial,sans-serif" font-size="30" fill="#e9ffee">Spotify Mini · mosaico 2×2</text>
+  <text x="57" y="180" font-family="Arial,sans-serif" font-size="22" fill="#e9ffee">x 27 · y 85 · 604 × 452 px</text>
+  <text x="663" y="140" font-family="Arial,sans-serif" font-size="22" fill="#ced8e0">Celda 294 × 218 px</text>
+  <text x="663" y="175" font-family="Arial,sans-serif" font-size="20" fill="#ced8e0">Separación: 16 px</text>
+  <text x="663" y="210" font-family="Arial,sans-serif" font-size="20" fill="#ced8e0">Margen lateral: 27 px</text>
+  <rect x="0" y="773" width="1280" height="27" fill="#1a1c22"/>
+  <text x="25" y="793" font-family="Arial,sans-serif" font-size="17" fill="#c6ccd2">Pie: 27 px con una sola página · 40 px si hay puntos de paginación</text>
+</svg>
