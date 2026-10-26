@@ -1,0 +1,21 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Esta cuenta de Spotify ya está configurada.",
+      "cannot_connect": "No se pudo leer la cuenta de Spotify. Comprueba Premium y la lista de usuarios permitidos.",
+      "reauth_account_mismatch": "Inicia sesión con la cuenta de Spotify ya vinculada a Spotify Mini."
+    },
+    "create_entry": {"default": "Spotify Mini está conectado."},
+    "initiate_flow": {"user": "Conectar una cuenta de Spotify"},
+    "step": {
+      "pick_implementation": {
+        "title": "Credenciales de la aplicación Spotify",
+        "data": {"implementation": "Credenciales de la aplicación"}
+      },
+      "reauth_confirm": {
+        "title": "Volver a conectar Spotify Mini",
+        "description": "Spotify Mini necesita que inicies sesión en Spotify otra vez."
+      }
+    }
+  }
+}
