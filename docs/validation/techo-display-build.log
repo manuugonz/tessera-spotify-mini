@@ -1,0 +1,1 @@
+TECHO5 display test cross-compilation succeeded for Linux ARM64; output verified as ELF aarch64. The binary was not run on the macOS host or Echo Show 8.

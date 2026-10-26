@@ -1,0 +1,9 @@
+tessera-spotify-mini: ok (no store.png yet: python3 tools/store_image.py <repository> makes its picture on the Plugins page)
+needs: ok
+plugin API 0.14: 1 checked
+spotify_mini 0.1.0: 1 tiles, 0 cards, 0 top bar items, 0 screensavers, settings rows: no
+cyd: building (a first build takes several minutes, later ones only what changed)
+cyd: 5 pictures, 1 findings (build 40 s, bench 9 s)
+  warning: cyd, Spotify Mini 2x2, page 1, dark: 1 too faint to read on its ground: faint[Spotify Mini]
+1 of 1 screens rendered, 1 warnings; open <repository>/.preview/index.html
+--strict: 1 warnings; see the findings in <repository>/.preview/summary.json

@@ -1,0 +1,13 @@
+tessera-spotify-mini: ok (no store.png yet: python3 tools/store_image.py <repository> makes its picture on the Plugins page)
+needs: ok
+plugin API 0.14: 1 checked
+spotify_mini 0.1.0: 1 tiles, 1 cards, 0 top bar items, 0 screensavers, settings rows: no
+cyd: building (a first build takes several minutes, later ones only what changed)
+cyd: 22 pictures, 2 findings (build 3 s, bench 30 s)
+guition: building (a first build takes several minutes, later ones only what changed)
+guition: 22 pictures, 2 findings (build 6 s, bench 38 s)
+waveshare43-portrait: building (a first build takes several minutes, later ones only what changed)
+waveshare43-portrait: 7 pictures, 5 findings (build 4 s, bench 14 s)
+jc8012p4a1: building (a first build takes several minutes, later ones only what changed)
+jc8012p4a1: 24 pictures, 0 findings (build 4 s, bench 38 s)
+4 of 4 screens rendered, 0 warnings; open <repository>/.preview/index.html

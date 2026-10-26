@@ -1,0 +1,9 @@
+go: downloading github.com/ygelfand/go-esphome-device v0.0.15-0.20261013225817-bf214844c4f5
+go: downloading google.golang.org/protobuf v1.36.11
+go: downloading github.com/flynn/noise v1.1.0
+go: downloading golang.org/x/crypto v0.55.0
+=== RUN   TestSpotifyProbeIsNotSupportedUpstream
+    spotify_probe_test.go:18: Echo Show 8 capabilities lack plugins; the plugin probe has no tap handler or plugin data renderer
+--- PASS: TestSpotifyProbeIsNotSupportedUpstream (0.00s)
+PASS
+ok  	github.com/HuskerMinion/techo5/echod/internal/feature/tessera	0.287s
